@@ -1,0 +1,120 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --button-background-color: rgb(81, 118, 241);
+  --menu-button-bgColor:whitesmoke;
+}
+
+:root[theme='dark'] {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --button-background-color:lightblue;
+  --menu-button-bgColor:black
+
+}
+html, body {
+  background: var(--bg-color);   /* whole page follows the theme */
+  color: var(--text-color);
+}
+.video_Container{
+    background-color: var(--bg-color);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 1px;
+}
+.video_cards{
+    color:var(--text-color);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 0.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+.streamingHeader {
+  width:100%;
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+.streamingHeader > div {
+  width: 100%;
+}
+.streamingHeader > div >input {
+  width:90%;
+}
+button{
+    border-radius: 5px;
+    background-color: var(--button-background-color);
+    color:var(--text-color);
+}
+
+/* in Register.css or a <style> tag / styled‑component */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;   /* optional: center on screen */
+  margin-top: 1rem;          /* optional spacing */
+}
+
+.PopUpContainer{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    height:100vh;
+    flex-direction: column;
+    border-radius: 10px;
+    /* box-shadow: 0 4px 20px rgb(6, 41, 215); */
+
+}
+.PopUpBox{
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 1);
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap:10px;
+    padding: 10px; 
+}
+.spanTwoColum{
+
+  grid-column: 1 / -1;      /* spans 2 columns */
+
+}
+
+.PopUpBox > * {
+    flex: 0 0 calc(50%-0.5rem)
+}
+
+
+
+@media screen and (max-width:600px){
+.streamingHeader{
+    grid-template-columns: 1fr; /* Stack items vertically */
+    gap: 0.5rem;
+    }
+    
+}
+.header{
+    background-color: var(--menu-button-bgColor);
+}
+.header button{
+    background-color: var(--menu-button-bgColor);
+    outline: none;
+    border: none;
+}
+
+.hidden {
+  visibility: hidden;
+}
