@@ -1,5 +1,5 @@
 import { PiSpinnerGap } from "react-icons/pi"
-import './Home.css'
+import './styles/Home.css'
 
 export default function Loading(){
     console.log('Loading fallback'); 

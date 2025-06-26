@@ -1,30 +1,74 @@
-import React,{useState} from "react";
-import './Home.css'
-import useFetchVideo from "./hooks/useFetchVideo";
+// components/Home.jsx
+import React, { useState } from "react";
+import './styles/Home.css';
 import VideoCard from "./VideoCard";
-import Menu from "./Menu"
-import { PiMagnifyingGlass, PiYoutubeLogoDuotone  } from "react-icons/pi";
+import { useVideo } from "./context/VideoContext";
+import './styles/VideoCard.css'
 
+function Home() {
+  const { videos } = useVideo();
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-function Home(){
-    const {videoList,error}=useFetchVideo();
-    const [searchText,setSearchText]=useState('');
-    const [search, setSearch]=useState('')
-    if(error){
-        const message="Some error occurred during the loading the video"
-        console.log(message)
-        return (<div>{message}</div>)
-    }
+  const filtered = selectedCategory
+    ? videos.filter(video => video.category?.includes(selectedCategory))
+    : videos;
 
-    if(videoList?.length==0) return (<>Video is still Loading....</>)
-    
-    const filteredVideo=videoList?.filter(video=>video.name.toLowerCase().includes(search.toLowerCase()))
+  if (!videos || videos.length === 0) return (<>
+    <div style={{ margin: "10px" }}>
+        <label htmlFor="categorySelect">Filter by Category: </label>
+        <select
+          id="categorySelect"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="Education">Education</option>
+          <option value="Music">Music</option>
+          <option value="Sports">Sports</option>
+          <option value="Comedy">Comedy</option>
+        </select>
+      </div><div>No videos found.</div></>);
+  if (filtered.length === 0) return (<>
+    <div style={{ margin: "10px" }}>
+        <label htmlFor="categorySelect">Filter by Category: </label>
+        <select
+          id="categorySelect"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="Education">Education</option>
+          <option value="Music">Music</option>
+          <option value="Sports">Sports</option>
+          <option value="Comedy">Comedy</option>
+        </select>
+      </div><div>No videos found for this category.</div></>);
 
+  return (
 
-    return (  
-        <div className="video_Container">
-            {filteredVideo?.map(video=><VideoCard video={video}></VideoCard>)}
-        </div>
-    );
+    <>
+    <div style={{ margin: "10px" }}>
+        <label htmlFor="categorySelect">Filter by Category: </label>
+        <select
+          id="categorySelect"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="Education">Education</option>
+          <option value="Music">Music</option>
+          <option value="Sports">Sports</option>
+          <option value="Comedy">Comedy</option>
+        </select>
+      </div>
+    <div className="video_Container">
+      
+      {filtered.map((video, idx) => (
+        <VideoCard key={idx} video={video} />
+      ))}
+    </div>
+  </>
+  );
 }
+
 export default Home;

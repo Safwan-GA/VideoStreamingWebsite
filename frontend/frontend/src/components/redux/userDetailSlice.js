@@ -1,37 +1,67 @@
-import {createSlice} from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
-const initialState={
-    email:"",
-    channel:"",
-    token:'',
-    user:'',
-    url:'http://localhost:5173/'
-}
+// Load from localStorage
+const storedUser = JSON.parse(localStorage.getItem("safwanStreaminAppUserData"));
 
-const userSlice=createSlice({
-    name:'Userdetail',
-    initialState,
-    reducers:{
-        baseurl:(state,action)=>{
-            state.url=action.payload.url
-        },
-        initializeToken:(state,action)=>{
-            state.token=action.payload.token;
-            state.user=action.payload.user;
-            state.channel=action.payload.channelName;
-            state.email=action.payload.email;
-        },
-        removeToken:(state)=>{
-            state.token='';
-            state.user='';
-            state.channel='';
-            state.email=''
-        },
-        initializeChannel:(state)=>{
-            state.channel=state.payload.channelName
-        }
-    }
-})
+const initialState = storedUser || {
+  email: "",
+  channel: "",
+  token: "",
+  user: "",
+  url: "http://localhost:5000/", // Change if hosted
+};
 
-export const {baseurl, initializeToken, removeToken, initializeChannel}=userSlice.actions;
+const userSlice = createSlice({
+  name: "Userdetail",
+  initialState,
+  reducers: {
+    baseurl: (state, action) => {
+      state.url = action.payload.url;
+    },
+    initializeToken: (state, action) => {
+      const {  user, email, channel,token, url } = action.payload;
+      state.token = token;
+      state.user = user;
+      state.channel = channel;
+      state.email = email;
+      state.url = url || state.url;
+
+      // Save to localStorage
+      localStorage.setItem(
+        "safwanStreaminAppUserData",
+        JSON.stringify({
+          token,
+          user,
+          channel,
+          email,
+          url: state.url,
+        })
+      );
+    },
+    removeToken: (state) => {
+      state.token = "";
+      state.user = "";
+      state.channel = "";
+      state.email = "";
+
+      localStorage.removeItem("safwanStreaminAppUserData");
+    },
+    initializeChannel: (state, action) => {
+      state.channel = action.payload;
+      localStorage.setItem(
+        "safwanStreaminAppUserData",
+        JSON.stringify({
+          token: state.token,
+          user: state.user,
+          channel: action.payload,
+          email: state.email,
+          url: state.url,
+        })
+      );
+    },
+
+  },
+});
+
+export const { baseurl, initializeToken, removeToken, initializeChannel } = userSlice.actions;
 export default userSlice.reducer;

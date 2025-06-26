@@ -1,192 +1,282 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { initializeToken, initializeChannel } from "./redux/userDetailSlice";
 import axios from "axios";
+import Upload from "./Upload";
+import { initializeChannel } from "./redux/userDetailSlice";
 
+export default function Channel() {
+  const [videos, setVideos] = useState([]);
+  const [uploadView, setUploadView] = useState(false);
+  const [error, setError] = useState(null);
+  const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const url = user.url;
 
-
-
-export function CreateChannel(){
-    const [channelName,setChannelName]=useState("")
-    const [error,setError]=useState(null)
-    const navigate=useNavigate()
-    const dispatch=useDispatch()
-    const user=useSelector(state=>state.user)
-    const url=user.url;
-    
-    const handleSubmitCreateChannel=(e)=>{
-        e.preventDefault()
-        setError(null)
-        const res=axios.post(`${url}createChannel`,{email:user.email,token:user.token,channelName})
-        .then(()=>{
-            dispatch(initializeChannel(channelName))
-            navigate('/channel')
+  useEffect(() => {
+    if (user.channel && user.token) {
+      axios
+        .get(`${url}getChannelVideo`, {
+          params: { channel: user.channel },
+          headers: { Authorization: `Bearer ${user.token}` },
         })
-        .catch(err=>setError(err.response?.data?.message))
+        .then((res) => setVideos(res.data))
+        .catch((err) =>
+          setError(err.response?.data?.message || "Error loading videos")
+        );
     }
+  }, [url, user.channel, user.token]);
 
-    if (user.email==='') {
-        
-        return ( 
-        <div className="PopUpContainer">
-            <p>User not yet logged in. Please login to continue</p>
-            <div className="PopUpBox">
-                <button onClick={()=>navigate('/login', { state: { from: "/createchannel" }, replace: true })} className="spanTwoColum">Navigate to Login</button>
-            </div>
-        </div>
-        );
+  const handleUploadSuccess = (newVideo) => {
+    setVideos((prev) => [newVideo, ...prev]);
+    setUploadView(false);
+  };
+
+  const handleDelete = async (videoId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this video?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${url}video/${videoId}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setVideos((prev) => prev.filter((vid) => vid._id !== videoId));
+    } catch (err) {
+      alert("Error deleting video");
+      console.error(err.response?.data || err.message);
     }
-    if (user.channel!==''){
-        return ( 
-        <div className="PopUpContainer">
-            <p>User already has the Channnel. Please open your channel.</p>
-            <div className="PopUpBox">
-                <button onClick={()=>navigate('/channel', {replace: true })} className="spanTwoColum">Open the Channel</button>
-            </div>
-        </div>
-        );
-    }
+  };
+
+  if (!user.email) {
     return (
-        <div className="PopUpContainer">
-            {error && <p>{error}</p>}
-            <div className="PopUpBox">
-                <label>Name of the channel: </label>
-                <input style={{ maxWidth: "200px" }} value={channelName} onChange={(e)=>setChannelName(e.target.value)}></input>
-                
-                <button onClick={handleSubmitCreateChannel} className="spanTwoColum">createChannel</button>
-            </div>
-            
+      <div className="PopUpContainer">
+        <p>User not yet logged in. Please login to continue</p>
+        <div className="PopUpBox">
+          <button
+            onClick={() =>
+              navigate("/login", {
+                state: { from: "/channel" },
+                replace: true,
+              })
+            }
+            className="spanTwoColum"
+          >
+            Navigate to Login
+          </button>
         </div>
-    )
+      </div>
+    );
+  }
+
+  if (!user.channel) {
+    return (
+      <div className="PopUpContainer">
+        <p>User doesn't have a channel. Please create your channel to proceed.</p>
+        <div className="PopUpBox">
+          <button
+            onClick={() => navigate("/createChannel", { replace: true })}
+            className="spanTwoColum"
+          >
+            Create Channel
+          </button>
+        </div>
+      </div>
+    );
+  }
+  {console.log(user)}
+
+  return (
+    <div style={{ padding: "1rem" }}>
+      <div style={{ marginBottom: "1rem" }}>
+        <label>
+          Channel Name: <strong>{user.channel}</strong>
+        </label>
+        <button
+          onClick={() => setUploadView(true)}
+          style={{
+            marginLeft: "1rem",
+            backgroundColor: "#007bff",
+            color: "white",
+            padding: "0.5rem 1rem",
+            borderRadius: "4px",
+            border: "none",
+          }}
+        >
+          Upload Video
+        </button>
+      </div>
+
+      {uploadView && (
+        <div style={{ marginBottom: "1rem" }}>
+          <Upload onSuccess={handleUploadSuccess} />
+          <button
+            type="button"
+            onClick={() => setUploadView(false)}
+            style={{
+              marginTop: "0.5rem",
+              backgroundColor: "#dc3545",
+              color: "white",
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              border: "none",
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {error && <p style={{ color: "red", marginBottom: "1rem" }}>{error}</p>}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+          gap: "1rem",
+        }}
+      >
+        {videos.map((eachVideo, idx) => (
+          <div
+            key={idx}
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <div onClick={() => navigate(`/stream/${eachVideo._id}`)} style={{ cursor: "pointer" }}>
+              <img
+                src={`${url}${eachVideo.thumbnailUrl}`}
+                alt={`Thumbnail for ${eachVideo.title}`}
+                style={{ width: "100%", height: "180px", objectFit: "cover" }}
+              />
+              <div style={{ padding: "0.75rem" }}>
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    marginBottom: "0.25rem",
+                  }}
+                >
+                  {eachVideo.title}
+                </h3>
+                <p style={{ fontSize: "0.875rem", color: "#666" }}>
+                  {eachVideo.description}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleDelete(eachVideo._id)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                backgroundColor: "red",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "4px 8px",
+                cursor: "pointer",
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-export default function Channel(){
-    const [video,setVideo]=useState(null)
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [uploadView,setUploadView]=useState(false)
-    const [error,setError]=useState(null)
-    const navigate=useNavigate()
-    const dispatch=useDispatch()
-    const user=useSelector(state=>state.user)
-    const url=user.url;
 
-    useEffect(() => {
-        axios
-            .get(`${url}getChannelVideo`, {
-                params: {
-                    token: user.token,
-                    channel: user.channel,
-                },
-            })
-            .then((response) => setVideo(response.data))
-            .catch((err) => setError(err.response?.data?.message || "Error loading video"));
-    },[url,user.channel,user.email])
-    
+export function CreateChannel() {
+  const [channelName, setChannelName] = useState("");
+  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const uploadVideo=(e)=>{
-        e.preventDefault()
-        setError(null)
-        if (!selectedFile) {
-            setError("Please select a video file.");
-            return;
-        }
+  const { email, token, channel, url } = useSelector((state) => state.user);
 
-        const formData = new FormData();
-        formData.append("token", user.token);
-        formData.append("title", title);
-        formData.append("description", description);
-        formData.append("video", selectedFile);
-
-        axios.post(`${url}upload`,formData).then((response)=>console.log('Video got uploaded'))
-        .catch((error)=>setError("some error occurrded during upload"))
-        setUploadView(false)
-        window.location.reload();
+  useEffect(() => {
+    if (channel) {
+      navigate("/channel");
     }
+  }, [channel, navigate]);
 
-    const genThumb = (videoUrl, cb) => {
-        const vid = document.createElement("video");
-        vid.src = videoUrl;
-        vid.muted = true;
-        vid.currentTime = 1;
-        vid.onloadeddata = () => {
-        const c = document.createElement("canvas");
-            c.width = 320;
-            c.height = 180;
-            c.getContext("2d").drawImage(vid, 0, 0, c.width, c.height);
-            cb(c.toDataURL("image/png"));
-        };
-    };
+  const handleSubmitCreateChannel = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-    if (user.email==='') {
+    try {
+      const res = await axios.post(
+        `${url}createChannel`,
+        { email, channelName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.status === 201 && res.data?.channelName) {
+        dispatch(initializeChannel(res.data.channelName));
+      } else {
         
-        return ( 
-        <div className="PopUpContainer">
-            <p>User not yet logged in. Please login to continue</p>
-            <div className="PopUpBox">
-                <button onClick={()=>navigate('/login', { state: { from: "/createchannel" }, replace: true })} className="spanTwoColum">Navigate to Login</button>
-            </div>
-        </div>
-        );
+        throw new Error("Unexpected API response");
+      }
+    } catch (err) {
+      console.error("CreateChannel error:", err);
+      setError(err?.response?.data?.message || err.message || "Error creating channel");
     }
-    if (user.channel!==''){
-        return ( 
-        <div className="PopUpContainer">
-            <p>User already has the Channnel. Please open your channel.</p>
-            <div className="PopUpBox">
-                <button onClick={()=>navigate('/createChannel', {replace: true })} className="spanTwoColum">Open the Channel</button>
-            </div>
-        </div>
-        );
-    }
-    
+  };
 
-
+  if (!email) {
     return (
-        <>
-            <div>
-                <label>Channel Name: <p>{user.channel}</p></label>
-                <button onClick={()=>setUploadView(true)}>Upload Video</button>
-                {uploadView && (<form onSubmit={uploadVideo} aria-hidden={uploadView}>
-                    <label>Title of the Video</label>
-                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                    <label>Description</label>
-                    <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} required />
-                    <label>Video:</label>
-                    <input
-                        type="file"
-                        accept="video/mp4,video/mov"
-                        onChange={(e) => setSelectedFile(e.target.files[0])}
-                        required
-                    />
-                    <button type="submit">Upload</button>
-                    <button type="button" onClick={() => setUploadView(false)}>
-                        Cancel
-                    </button>
-                </form>)}
+      <div className="PopUpContainer">
+        <p>User not yet logged in. Please login to continue</p>
+        <div className="PopUpBox">
+          <button
+            onClick={() =>
+              navigate("/login", { state: { from: "/createchannel" }, replace: true })
+            }
+            className="spanTwoColum"
+          >
+            Navigate to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-            </div>
-            
-            {/* {video &&
-                    vid?.map((eachVideo, idx) => (
-                    <div key={idx} onClick={() => navigate("/video", { state: { video: eachVideo } })}>
-                    <p><strong>Title:</strong> {eachVideo.title}</p>
-                    <p><strong>Description:</strong> {eachVideo.description}</p>
+  if (channel && channel !== "") {
+    return (
+      <div className="PopUpContainer">
+        <p>User already has a channel. Please open your channel.</p>
+        <div className="PopUpBox">
+          <button
+            onClick={() => navigate("/channel", { replace: true })}
+            className="spanTwoColum"
+          >
+            Open the Channel
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-                    {eachVideo.thumbnailUrl ? (
-                        <img
-                        src={eachVideo.thumbnailUrl}
-                        alt={`Thumbnail for ${eachVideo.title}`}
-                        width="320"
-                        height="180"
-                        />
-                    ) : (
-                        <p>Loading thumbnail...</p>
-                    )}
-                    </div>
-                ))} */}
-        </>
-    )
+  return (
+    <div className="PopUpContainer">
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <div className="PopUpBox">
+        <label>Name of the channel:</label>
+        <input
+          style={{ maxWidth: "200px" }}
+          value={channelName}
+          onChange={(e) => setChannelName(e.target.value)}
+        />
+        <button onClick={handleSubmitCreateChannel} className="spanTwoColum">
+          Create Channel
+        </button>
+      </div>
+    </div>
+  );
 }

@@ -16,12 +16,15 @@ html, body {
   background: var(--bg-color);   /* whole page follows the theme */
   color: var(--text-color);
 }
-.video_Container{
-    background-color: var(--bg-color);
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-    gap: 1px;
+.video_Container {
+  background-color: var(--bg-color);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+  box-sizing: border-box;
 }
+
 .video_cards{
     color:var(--text-color);
     border: 1px solid #ccc;
@@ -117,4 +120,56 @@ button{
 
 .hidden {
   visibility: hidden;
+}
+
+.upload-container {
+  /* replaces `space-y-4` (vertical gap) */
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-container > * + * {
+  margin-top: 1rem;          /* Tailwind spacing-4 = 16 px (1 rem) */
+}
+
+.upload-btn {
+  padding: 0.5rem 1rem;      /* py-2 px-4 */
+  background: #2563eb;       /* Tailwind blue-600 */
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;        /* Tailwind rounded (0.25 rem) */
+  cursor: pointer;
+}
+
+.upload-btn:disabled {
+  opacity: 0.4;              /* Tailwind opacity-40 */
+  cursor: not-allowed;
+}
+
+.video-preview {
+  width: 480px;
+  margin-top: 1rem;
+}
+.profileDetail {
+  position: absolute;
+  top: 60px; /* adjust based on your header height */
+  right: 20px;
+  background-color: var(--profile-bg, white);
+  color: var(--profile-color, black);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  font-size: 14px;
+}
+
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem;
 }
