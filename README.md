@@ -1,3 +1,9 @@
+Git link: https://github.com/Safwan-GA/VideoStreamingWensite/ 
+
+Video Link: https://drive.google.com/file/d/1eQTTGEA57kFYEbuUn3GnyJqoEzptEjYy/view?usp=sharing
+
+
+
 # 🎥 Video Streaming Website
 
 A full-stack video streaming web application with features like video upload, playback, channel creation, and user authentication.
