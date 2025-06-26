@@ -43,6 +43,7 @@ Here's a clear explanation of all the features that have been implemented in you
 
   * Upload multiple videos
   * View all their uploaded videos on the **Channel page**
+  * User can delete the Video.
 
 ---
 
