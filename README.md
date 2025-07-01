@@ -1,176 +1,124 @@
-Git link: https://github.com/Safwan-GA/VideoStreamingWensite/ 
-
-Video Link: https://drive.google.com/file/d/1eQTTGEA57kFYEbuUn3GnyJqoEzptEjYy/view?usp=sharing
-
-
-
 # 🎥 Video Streaming Website
 
 A full-stack video streaming web application with features like video upload, playback, channel creation, and user authentication.
 
 > Built with **React.js**, **Node.js**, **Express**, and **MongoDB (with GridFS)**.
 
-Here's a clear explanation of all the features that have been implemented in your **Video Streaming Website** full-stack project:
+GitHub Repo: [VideoStreamingWensite](https://github.com/Safwan-GA/VideoStreamingWebsite)  
+Demo Video: [Watch on Google Drive](https://drive.google.com/file/d/122vUom8AxftoB45iUDUqOYnJ8p99JPku/view?usp=sharing)
 
 ---
 
-## **Implemented Features Overview**
+## ✅ Implemented Features Overview
 
-###  User Authentication
+### 🔐 User Authentication
 
-* **Register/Login** functionality
-* JWT-based **authentication and authorization**
-* User session management using Redux on the frontend
-
----
-
-###  Video Upload and Playback
-
-* Upload videos via the **Upload form**
-
-  * Uses `Multer` and `GridFS` to store videos directly in **MongoDB**
-  * Automatically generates and stores a **thumbnail** using `ffmpeg`
-* View videos with:
-
-  * HTML5 `<video>` player
-  * Auto playback, fullscreen, volume controls
-* Each video has:
-
-  * Title
-  * Description
-  * Thumbnail preview
+- Register/Login functionality
+- JWT-based **authentication and authorization**
+- User session management using Redux on the frontend
 
 ---
 
-### Channel System
+### 📤 Video Upload and Playback
 
-* Users can **create a personal channel**
-* Each user/channel can:
-
-  * Upload multiple videos
-  * View all their uploaded videos on the **Channel page**
-  * User can delete the Video.
-
----
-
-###  Engagement: Likes and Dislikes
-
-* Each video supports:
-
-  *  **Like** button
-  *  **Dislike** button
-* Like/dislike counts are displayed and updated in real-time
+- Upload videos via the **Upload form**
+  - Uses `Multer` and `GridFS` to store videos in **MongoDB**
+  - Auto-generates **thumbnails** using `ffmpeg`
+- HTML5 `<video>` player with:
+  - Playback, fullscreen, volume controls
+- Each video includes:
+  - Title, Description, and Thumbnail
 
 ---
 
-###  Commenting System
+### 📺 Channel System
 
-* Users can:
+- Users can **create a personal channel**
+- Each user/channel can:
+  - Upload, view, and delete their videos
+  - View all uploaded videos on the **Channel page**
+- **Edit and Delete Channel Name**
+  - Users can **rename their channel**
+  - Users can **delete their channel**, which also deletes all their videos
 
-  * Add comments on a video
-  * Edit or delete **their own comments**
-* Comments display:
+---
 
-  * Author name or email
-  * Comment text
+### 👍 Engagement: Likes and Dislikes
+
+- Like and Dislike buttons for each video
+- Real-time counter updates
+
+---
+
+### 💬 Commenting System
+
+- Add/edit/delete comments on videos
+- Shows commenter name/email and timestamp
 
 ---
 
 ### 🗑 Video Deletion
 
-* Logged-in users can **delete their own uploaded videos**
-* Upon deletion:
-
-  * Video is removed from MongoDB GridFS
-  * Associated metadata (title, description, comments) is also cleaned up
-
----
-
-###  Channel View
-
-* Channel dashboard displays all uploaded videos by the user
-* Shows:
-
-  * Thumbnail
-  * Title
-  * Description
-* Clicking on a video navigates to the **Video Player page**
+- Logged-in users can delete their videos
+- Deletes:
+  - Video file from GridFS
+  - Metadata: title, description, comments, and thumbnail
 
 ---
 
-###  Protected Routes
+### 👤 Channel View
 
-* Routes like `/upload`, `/channel`, `/createChannel` are **protected** and only accessible if:
-
-  * The user is logged in
-  * A valid JWT token exists
-* Users are redirected to the login page if unauthorized
+- Channel dashboard shows:
+  - All uploaded videos with thumbnails, title & description
+- Clicking a video navigates to the **Video Player page**
 
 ---
 
-###  Theme Support *(Optional enhancement mentioned in code)*
+### 🔐 Protected Routes
 
-* CSS root variables set up for:
-
-  * Light/Dark theme toggle
-
----
-
-##  Backend Tech Stack
-
-* **Node.js**, **Express.js**
-* **MongoDB Atlas** with GridFS
-* JWT authentication
-* Multer + `fluent-ffmpeg` for video uploads + thumbnails
-
-##  Frontend Tech Stack
-
-* **React.js** (with hooks)
-* **Redux Toolkit** for state management
-* **React Router v6**
-* **Axios** for HTTP requests
-* Tailwind CSS for styling
-* Icons from `react-icons`
+- `/upload`, `/channel`, `/createChannel` require:
+  - Logged-in user
+  - Valid JWT token
+- Unauthorized users are redirected to login
 
 ---
 
-Let me know if you want a table version of this, or a section to be added to your README file directly.
+### 🎨 Theme Support *(Planned)*
+
+- CSS root variables defined for:
+  - Light/Dark theme toggle
 
 ---
 
-##  Live Demo
+## 🧠 Future Scope
 
-> _Coming Soon_ (update your homepage URL or deployment link here)
-
----
-
-##  Project Structure
-
-capstoneProject/
-├── backend/ # Node.js + Express + MongoDB (GridFS)
-├── frontend/frontend/ # ReactJS Frontend
-├── package.json # Root script runner & dependency manager
-└── README.md # This file
-
+- 🔐 **Forgot Password functionality**
+  - Add password reset flow via email token
+- 🌐 Deploy on platforms like Vercel / Netlify (Frontend) and Render / Railway (Backend)
+- 🎨 Add Dark/Light theme switcher
+- 📊 Video view count tracking
+- 📝 Pagination and search filters on Home page
 
 ---
 
-## 🚀 Installation Guide
+## 🛠 Backend Tech Stack
 
-### Prerequisites
-
-Ensure you have the following installed globally:
-
-- [Node.js](https://nodejs.org/) >= v18
-- [MongoDB](https://www.mongodb.com/) (Atlas or Local)
-- Git
+- **Node.js**, **Express.js**
+- **MongoDB Atlas** with GridFS
+- JWT for secure auth
+- Multer + fluent-ffmpeg for video & thumbnail processing
 
 ---
 
-### 📥 Clone the Repository
+## 💻 Frontend Tech Stack
 
-```bash
-git clone https://github.com/Safwan-GA/VideoStreamingWensite.git
-cd VideoStreamingWensite
-npm run install-all
-npm run dev
+- **React.js** (with hooks)
+- **Redux Toolkit**
+- **React Router v6**
+- **Axios** for API calls
+- **React Icons**
+
+---
+
+## 📁 Project Structure
+
