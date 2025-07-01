@@ -43,7 +43,7 @@ router.put('/video/comment/:id/:commentId', protect, updateComment);
 
 
 // for thumbnail images
-router.get("/video/play/:filename", async (req, res) => {
+router.get("/video/image/:filename", async (req, res) => {
   try {
     const file = await gfs.files.findOne({ filename: req.params.filename });
 

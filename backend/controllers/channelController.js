@@ -42,3 +42,52 @@ export const getChannelVideos = async (req, res) => {
   const populated = await ch.populate("videos");
   res.json(populated.videos);
 };
+
+
+export const updateChannelName = async (req, res) => {
+  try {
+    const { newName } = req.body;
+    const userId = req.user._id;
+
+    if (!newName) {
+      return res.status(400).json({ message: "New channel name required" });
+    }
+
+    const user = await User.findById(userId).populate("UserChannel");
+    if (!user || !user.UserChannel) {
+      return res.status(404).json({ message: "User has no channel to rename" });
+    }
+
+    const existingChannel = await Channel.findOne({ name: newName });
+    if (existingChannel) {
+      return res.status(409).json({ message: "Channel name already taken" });
+    }
+
+    user.UserChannel.name = newName;
+    await user.UserChannel.save();
+
+    res.status(200).json({ message: "Channel renamed", newName });
+
+  } catch (err) {
+    console.error("Error in updateChannelName:", err.message);
+    res.status(500).json({ message: "Server error while updating channel name" });
+  }
+};
+
+
+export const deleteChannel = async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  if (!user || !user.UserChannel) {
+    return res.status(404).json({ message: "No channel to delete" });
+  }
+
+  await Channel.findByIdAndDelete(user.UserChannel);
+  user.UserChannel = null;
+  await user.save();
+
+  res.status(200).json({ message: "Channel deleted successfully" });
+};
+
+

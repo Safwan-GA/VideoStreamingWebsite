@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Upload from "./Upload";
 import { initializeChannel } from "./redux/userDetailSlice";
+import './styles/VideoCard.css'
 
 export default function Channel() {
   const [videos, setVideos] = useState([]);
@@ -12,6 +13,7 @@ export default function Channel() {
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
   const url = user.url;
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (user.channel && user.token) {
@@ -43,6 +45,40 @@ export default function Channel() {
       setVideos((prev) => prev.filter((vid) => vid._id !== videoId));
     } catch (err) {
       alert("Error deleting video");
+      console.error(err.response?.data || err.message);
+    }
+  };
+
+  const handleDeleteChannel = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete your channel? This action cannot be undone.");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${url}deleteChannel`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      dispatch(initializeChannel(""));
+      navigate("/");
+    } catch (err) {
+      alert("Error deleting channel");
+      console.error(err.response?.data || err.message);
+    }
+  };
+
+  const handleUpdateChannel = async () => {
+    const newName = prompt("Enter new channel name:", user.channel);
+    if (!newName || newName === user.channel) return;
+
+    try {
+      console.log("Channel Name update started")
+      const res = await axios.put(
+        `${url}updateChannelName`,
+        { newName },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      dispatch(initializeChannel(newName));
+    } catch (err) {
+      alert("Error updating channel name");
       console.error(err.response?.data || err.message);
     }
   };
@@ -83,7 +119,6 @@ export default function Channel() {
       </div>
     );
   }
-  {console.log(user)}
 
   return (
     <div style={{ padding: "1rem" }}>
@@ -103,6 +138,32 @@ export default function Channel() {
           }}
         >
           Upload Video
+        </button>
+        <button
+          onClick={handleUpdateChannel}
+          style={{
+            marginLeft: "0.5rem",
+            backgroundColor: "#ffc107",
+            color: "black",
+            padding: "0.5rem 1rem",
+            borderRadius: "4px",
+            border: "none",
+          }}
+        >
+          Rename Channel
+        </button>
+        <button
+          onClick={handleDeleteChannel}
+          style={{
+            marginLeft: "0.5rem",
+            backgroundColor: "#dc3545",
+            color: "white",
+            padding: "0.5rem 1rem",
+            borderRadius: "4px",
+            border: "none",
+          }}
+        >
+          Delete Channel
         </button>
       </div>
 
@@ -154,6 +215,7 @@ export default function Channel() {
               />
               <div style={{ padding: "0.75rem" }}>
                 <h3
+                  className="video-Card-title"
                   style={{
                     fontSize: "1rem",
                     fontWeight: "600",
@@ -162,7 +224,7 @@ export default function Channel() {
                 >
                   {eachVideo.title}
                 </h3>
-                <p style={{ fontSize: "0.875rem", color: "#666" }}>
+                <p className="video-Card-description" style={{ fontSize: "0.875rem", color: "#666" }}>
                   {eachVideo.description}
                 </p>
               </div>
@@ -190,7 +252,6 @@ export default function Channel() {
     </div>
   );
 }
-
 
 export function CreateChannel() {
   const [channelName, setChannelName] = useState("");
@@ -220,7 +281,6 @@ export function CreateChannel() {
       if (res.status === 201 && res.data?.channelName) {
         dispatch(initializeChannel(res.data.channelName));
       } else {
-        
         throw new Error("Unexpected API response");
       }
     } catch (err) {

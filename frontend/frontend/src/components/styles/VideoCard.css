@@ -40,10 +40,41 @@
   margin: 0 0 0.5rem;
   font-size: 1rem;
   font-weight: 600;
+  color: black;
 }
 
 .video-description {
   margin: 0;
   font-size: 0.875rem;
   color: #555;
+}
+
+
+.truncate-multiline {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clamp-2 {
+  -webkit-line-clamp: 2;
+}
+
+.clamp-3 {
+  -webkit-line-clamp: 3;
+}
+
+.expanded {
+  -webkit-line-clamp: unset !important;
+}
+
+
+.video-Card-title,
+.video-Card-description {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
 }

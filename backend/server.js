@@ -21,6 +21,7 @@ const startServer = async () => {
   app.use(cors());
   app.use(express.json());
 
+
   app.use('/thumbnails', express.static(path.join(__dirname, 'thumbnails')));
 
   app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
@@ -28,6 +29,11 @@ const startServer = async () => {
   app.use("/", authRoutes);
   app.use("/", channelRoutes);
   app.use("/", videoRoutes);
+
+  app.get('/', (req, res) => {
+    res.send("Backend has started");
+  });
+
 
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => console.log(`Server up on ${PORT}`));

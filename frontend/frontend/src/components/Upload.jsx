@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import Loading from "./Loading";
 
 export default function Upload({ onSuccess }) {
   const [title, setTitle] = useState('');
@@ -9,6 +10,8 @@ export default function Upload({ onSuccess }) {
   const [category, setCategory] = useState(''); // NEW
   const [error, setError] = useState(null);
 
+  const [uploading,setUploading]=useState(false)
+
   const user = useSelector((state) => state.user);
   const url = user.url;
 
@@ -16,33 +19,42 @@ export default function Upload({ onSuccess }) {
     e.preventDefault();
     setError(null);
 
+
     if (!selectedFile) {
       setError("Please select a video file.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedFile); // ✅ must match multer field name
-    formData.append("videoTitle", title); // ✅ match backend field
-    formData.append("videoDescription", description); // ✅ match backend field
-    formData.append("categoryString", category); // ✅ comma-separated
-    formData.append("channelName", user.channel); // ✅ match backend field
+    formData.append("file", selectedFile); 
+    formData.append("videoTitle", title); 
+    formData.append("videoDescription", description); //  match backend field
+    formData.append("categoryString", category); //  comma-separated
+    formData.append("channelName", user.channel); //  match backend field
 
     try {
+      setUploading(true);
       const res = await axios.post(`${url}upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${user.token}` // ✅ send token in header
+          Authorization: `Bearer ${user.token}` //  send token in header
         }
       });
-      onSuccess(res.data);
+      onSuccess(res.data.video);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Upload failed.");
     }
+    finally{
+      setUploading(false)
+    }
   };
 
   return (
+    <>
+    {uploading  && (
+        <Loading uploading={true} />
+      )}
     <form onSubmit={handleUpload} className="PopUpBox">
       {error && <p style={{ color: "red" }} className="spanTwoColum">{error}</p>}
 
@@ -80,5 +92,6 @@ export default function Upload({ onSuccess }) {
 
       <button type="submit">Upload Video</button>
     </form>
+    </>
   );
 }

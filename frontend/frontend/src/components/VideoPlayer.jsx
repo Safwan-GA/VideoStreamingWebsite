@@ -1,19 +1,25 @@
-// components/VideoPlayer.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { PiThumbsUpDuotone, PiThumbsDownDuotone, PiTrashLight, PiPencilSimpleLight } from "react-icons/pi";
-
+import {
+  PiThumbsUpDuotone,
+  PiThumbsDownDuotone,
+  PiTrashLight,
+  PiPencilSimpleLight,
+} from "react-icons/pi";
+import "./styles/VideoCard.css";
 
 export default function VideoPlayer() {
   const { videoId } = useParams();
   const navigate = useNavigate();
-  const { url, user , token, email } = useSelector((state) => state.user);
+  const { url, user, token, email } = useSelector((state) => state.user);
 
   const [videoData, setVideoData] = useState(null);
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
   const [error, setError] = useState(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showFullTitle, setShowFullTitle] = useState(false);
 
   const fetchVideoData = async () => {
     try {
@@ -42,11 +48,12 @@ export default function VideoPlayer() {
     if (!commentText.trim()) return;
 
     try {
-      await axios.post(`${url}video/comment/${videoId}`, 
-        { text: commentText, email:email },
+      await axios.post(
+        `${url}video/comment/${videoId}`,
+        { text: commentText, email },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setCommentText('');
+      setCommentText("");
       fetchVideoData();
     } catch (err) {
       console.error("Failed to post comment:", err.response?.data || err.message);
@@ -55,7 +62,7 @@ export default function VideoPlayer() {
 
   const handleDelete = async (commentId) => {
     await axios.delete(`${url}video/comment/${videoId}/${commentId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     fetchVideoData();
   };
@@ -64,26 +71,22 @@ export default function VideoPlayer() {
     const newText = prompt("Edit your comment:", oldText);
     if (!newText || newText === oldText) return;
 
-    await axios.put(`${url}video/comment/${videoId}/${commentId}`, {
-      text: newText
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
+    await axios.put(
+      `${url}video/comment/${videoId}/${commentId}`,
+      { text: newText },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     fetchVideoData();
   };
 
-
   if (!videoData) return <p>Loading video...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ padding: 16 }}>
       <button onClick={() => navigate(-1)}>← Back</button>
 
-      <h2>{videoData.title}</h2>
-      <p>{videoData.description}</p>
-
+      {/* Video Player */}
       <video
         src={`${url}play/${videoData.fileId}`}
         controls
@@ -91,25 +94,71 @@ export default function VideoPlayer() {
         style={{ width: "100%", maxHeight: "80vh", marginBottom: "1rem" }}
       />
 
-      <div>
-        <button onClick={handleLike}><PiThumbsUpDuotone size={20}/> {videoData.likes || 0}</button>
-        <button onClick={handleDislike} style={{ marginLeft: "1rem" }}><PiThumbsDownDuotone size={20}/> {videoData.dislikes || 0}</button>
+      {/* Title */}
+      <div style={{ marginBottom: "0.5rem" }}>
+        <h2
+          className={`truncate-multiline ${showFullTitle ? "expanded" : "clamp-2"}`}
+          style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+        >
+          {videoData.title}
+        </h2>
+        {videoData.title.length > 100 && (
+          <button
+            onClick={() => setShowFullTitle(!showFullTitle)}
+            className="see-more-btn"
+          >
+            {showFullTitle ? "Show less" : "Show more"}
+          </button>
+        )}
       </div>
 
+      {/* Description */}
+      <div style={{ marginBottom: "1rem" }}>
+        <p
+          className={`truncate-multiline ${showFullDescription ? "expanded" : "clamp-3"}`}
+        >
+          {videoData.description}
+        </p>
+        {videoData.description.length > 200 && (
+          <button
+            onClick={() => setShowFullDescription(!showFullDescription)}
+            className="see-more-btn"
+          >
+            {showFullDescription ? "Show less" : "Show more"}
+          </button>
+        )}
+      </div>
+
+      {/* Like/Dislike */}
+      <div>
+        <button onClick={handleLike}>
+          <PiThumbsUpDuotone size={20} /> {videoData.likes || 0}
+        </button>
+        <button onClick={handleDislike} style={{ marginLeft: "1rem" }}>
+          <PiThumbsDownDuotone size={20} /> {videoData.dislikes || 0}
+        </button>
+      </div>
+
+      {/* Comments */}
       <div style={{ marginTop: "1rem" }}>
         <h4>Comments</h4>
         <ul>
           {videoData.comments?.map((cmt, i) => (
-            <li key={i}>
+            <li key={i} style={{ marginBottom: "0.5rem" }}>
               {cmt.text}
-
-              { cmt.text.split(":")[0].trim() == email &&(
+              {cmt.text.split(":")[0].trim() === email && (
                 <>
-                  <button onClick={() => handleEdit(cmt._id, cmt.text)}>
-                    <PiPencilSimpleLight size={20}/>
+                  <button
+                    onClick={() => handleEdit(cmt._id, cmt.text)}
+                    style={{ marginLeft: "1rem" }}
+                  >
+                    <PiPencilSimpleLight size={18} />
                   </button>
-                  <button onClick={() => handleDelete(cmt._id)}>
-                    <PiTrashLight size={20}/>
+                  <button
+                    onClick={() => handleDelete(cmt._id)}
+                    style={{ marginLeft: "0.5rem" }}
+                  >
+                    <PiTrashLight size={18} />
                   </button>
                 </>
               )}

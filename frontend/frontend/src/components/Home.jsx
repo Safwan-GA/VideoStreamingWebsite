@@ -6,7 +6,7 @@ import { useVideo } from "./context/VideoContext";
 import './styles/VideoCard.css'
 
 function Home() {
-  const { videos } = useVideo();
+  const { videos } = useVideo() || [];
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const filtered = selectedCategory

@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import './styles/VideoCard.css'; // Optional: import your CSS
+import './styles/VideoCard.css';
 
 export default function VideoCard({ video }) {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ export default function VideoCard({ video }) {
         />
       </div>
       <div className="video-info">
-        <h3 className="video-title">{video.title}</h3>
-        <p className="video-description">{video.description}</p>
+        <h3 className="video-title video-Card-title">{video.title}</h3>
+        <p className="video-description video-Card-description">{video.description}</p>
       </div>
     </div>
   );

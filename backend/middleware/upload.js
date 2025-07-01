@@ -1,12 +1,12 @@
-import multer from "multer";
+import multer from 'multer';
 
-// Use memory storage to access req.file.buffer
+// Use memory storage for GridFS + thumbnail generation
 const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 1 * 1024 * 1024 * 1024, // optional: 1GB limit
+    fileSize: 1 * 1024 * 1024 * 1024, // Max 1GB
   },
   fileFilter: (req, file, cb) => {
     const allowed = ['video/mp4', 'video/mkv', 'video/avi', 'video/mov'];
@@ -18,4 +18,4 @@ const upload = multer({
   },
 });
 
-export const uploadVideo = upload.single("file"); // input name should be `video`
+export const uploadVideo = upload.single('file'); // input name should be 'file'

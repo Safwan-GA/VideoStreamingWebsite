@@ -3,14 +3,103 @@ import mongoose from "mongoose";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { exec } from "child_process";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+
 import Video from "../models/Video.js";
 import Channel from "../models/Channel.js";
 import User from "../models/User.js";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import ffmpeg from "../config/ffmpeg.js"; // import configured ffmpeg
 
-// import Video from "../models/Video.js";
+// __dirname workaround for ESModules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export const uploadVideo = async (req, res) => {
+  try {
+    const { videoTitle, videoDescription, channelName, categoryString } = req.body;
+    const category = categoryString?.split(",") || [];
+
+    if (!req.file) return res.status(400).json({ message: "No video file provided" });
+
+    const { originalname, buffer, mimetype } = req.file;
+
+    const channel = await Channel.findOne({ name: channelName });
+    if (!channel) return res.status(404).json({ message: "Channel not found" });
+
+    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+      bucketName: "videos",
+    });
+
+    const uploadStream = bucket.openUploadStream(originalname, { contentType: mimetype });
+    const fileId = uploadStream.id;
+    uploadStream.end(buffer);
+
+    uploadStream.on("finish", async () => {
+      console.log("Video uploaded to GridFS:", fileId);
+
+      const tempVideoPath = path.join(os.tmpdir(), `${fileId}.mp4`);
+      const tempWriteStream = fs.createWriteStream(tempVideoPath);
+      const downloadStream = bucket.openDownloadStream(fileId);
+      downloadStream.pipe(tempWriteStream);
+
+      tempWriteStream.on("finish", async () => {
+        const thumbnailFolder = path.join(__dirname, "..", "thumbnails");
+        const thumbnailFilename = `${fileId}.png`;
+        const thumbnailPath = path.join(thumbnailFolder, thumbnailFilename);
+
+        if (!fs.existsSync(thumbnailFolder)) {
+          fs.mkdirSync(thumbnailFolder);
+        }
+
+        const ffmpegPath = ffmpegInstaller.path;
+        const cmd = `"${ffmpegPath}" -i "${tempVideoPath}" -ss 00:00:01 -vframes 1 -s 320x240 "${thumbnailPath}"`;
+
+        exec(cmd, async (error) => {
+          if (error) {
+            console.error("FFmpeg error:", error.message);
+            return res.status(500).json({ message: "Thumbnail generation failed" });
+          }
+
+          const video = new Video({
+            title: videoTitle,
+            description: videoDescription,
+            fileId,
+            thumbnailUrl: `thumbnails/${thumbnailFilename}`,
+            channel: channel._id,
+            owner: req.user._id,
+            category: Array.isArray(category) ? category : [category],
+          });
+
+          await video.save();
+          channel.videos.push(video._id);
+          await channel.save();
+
+          const user = await User.findById(req.user._id);
+          if (user) {
+            user.videos = user.videos || [];
+            user.videos.push(video._id);
+            await user.save();
+          }
+
+          fs.unlinkSync(tempVideoPath);
+
+          res.status(201).json({ message: "Video uploaded successfully", video });
+        });
+      });
+    });
+
+    uploadStream.on("error", (err) => {
+      console.error("GridFS upload error:", err.message);
+      res.status(500).json({ message: "Video upload failed" });
+    });
+  } catch (err) {
+    console.error("Upload error:", err.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 
 
@@ -123,109 +212,6 @@ export const deleteVideo = async (req, res) => {
   } catch (err) {
     console.error("Delete video error:", err.message);
     res.status(500).json({ message: "Failed to delete video", error: err.message });
-  }
-};
-
-// Fix __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-export const uploadVideo = async (req, res) => {
-  try {
-    const { videoTitle, videoDescription, channelName, categoryString } = req.body;
-    const category = categoryString?.split(",") || [];
-
-    if (!req.file) return res.status(400).json({ message: "No video file provided" });
-
-    const { originalname, buffer, mimetype } = req.file;
-
-    //  Check if channel exists
-    const channel = await Channel.findOne({ name: channelName });
-    if (!channel) return res.status(404).json({ message: "Channel not found" });
-
-    //  Upload to GridFS
-    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: "videos",
-    });
-
-    const uploadStream = bucket.openUploadStream(originalname, { contentType: mimetype });
-    const fileId = uploadStream.id;
-    uploadStream.end(buffer);
-
-    uploadStream.on("finish", async () => {
-      console.log("Video uploaded to GridFS:", fileId);
-
-      const tempVideoPath = path.join(os.tmpdir(), `${fileId}.mp4`);
-      const downloadStream = bucket.openDownloadStream(fileId);
-      const tempWriteStream = fs.createWriteStream(tempVideoPath);
-
-      downloadStream.pipe(tempWriteStream);
-
-      tempWriteStream.on("finish", () => {
-        const thumbnailFilename = `${fileId}.png`;
-        const thumbnailFolder = path.join(__dirname, "..", "thumbnails");
-        const thumbnailPath = path.join(thumbnailFolder, thumbnailFilename);
-
-        if (!fs.existsSync(thumbnailFolder)) {
-          fs.mkdirSync(thumbnailFolder);
-        }
-
-        ffmpeg(tempVideoPath)
-          .screenshots({
-            timestamps: ["00:00:01"],
-            filename: thumbnailFilename,
-            folder: thumbnailFolder,
-            size: "320x240",
-          })
-          .on("end", async () => {
-            console.log("Thumbnail generated:", thumbnailPath);
-
-            const video = new Video({
-              title: videoTitle,
-              description: videoDescription,
-              fileId,
-              thumbnailUrl: `thumbnails/${thumbnailFilename}`,
-              channel: channel._id,
-              owner: req.user._id,
-              category: Array.isArray(category) ? category : [category],
-            });
-
-            await video.save();
-
-            // Push video ID to channel.videos
-            channel.videos.push(video._id);
-            await channel.save();
-
-            // Optional: Push video to user.videos if you track that
-            const user = await User.findById(req.user._id);
-            if (user) {
-              user.videos = user.videos || [];
-              user.videos.push(video._id);
-              await user.save();
-            }
-
-            fs.unlinkSync(tempVideoPath);
-
-            res.status(201).json({
-              message: "Video uploaded successfully",
-              video,
-            });
-          })
-          .on("error", (err) => {
-            console.error("FFmpeg error:", err.message);
-            res.status(500).json({ message: "Thumbnail generation failed" });
-          });
-      });
-    });
-
-    uploadStream.on("error", (err) => {
-      console.error("GridFS upload error:", err.message);
-      res.status(500).json({ message: "Video upload failed" });
-    });
-
-  } catch (err) {
-    console.error("Upload error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
   }
 };
 
